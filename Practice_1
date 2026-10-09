@@ -1,0 +1,124 @@
+
+import csv
+import json
+
+ROUTES = [
+    {"id": "7",  "fare": 40, "capacity": 60, "is_ac": True},
+    {"id": "12", "fare": 25, "capacity": 45, "is_ac": False},
+    {"id": "31", "fare": 55, "capacity": 50, "is_ac": True},
+    {"id": "42", "fare": 20, "capacity": 40, "is_ac": False},
+    {"id": "88", "fare": 35, "capacity": 55, "is_ac": True},
+]
+"""
+Data structures & lambda — “Bus Fleet”
+Start with a list of route dictionaries (id, fare, capacity, is_ac).
+
+(..., key=lambda r: r["fare"]) to sort routes by fare. (This is your lambda practice — remember: lambda only lives inside max, min, or sorted.)
+Use max(routes, key=lambda r: r["capacity"]) to find the biggest bus
+"""
+#Use a list comprehension to get all route ids where fare > 30.
+
+ids =[route["id"] for route in ROUTES if route["fare"]>30]
+print(f"{ids} routes have fare above 30.")
+
+#Use a dict comprehension to build {id: capacity}.
+route_capacity ={route["id"]:route["capacity"] for route in ROUTES}
+
+#Use sorted
+
+by_fare = sorted(ROUTES,key = lambda r:r["fare"])
+print(by_fare)
+
+#use max
+
+max_capacity = max(ROUTES, key = lambda r: r["capacity"])
+print(max_capacity)
+
+#Functions
+def trip_cost(distance, fare_per_km=2.5, is_peak=False):
+    cost = distance * fare_per_km
+    if is_peak:
+        cost *= 1.15
+    return round(cost,2)
+
+print("trip cost for 10km")
+print(trip_cost(10))
+
+
+#File I/O — CSV
+with open("routes.csv","w",newline ="") as f:
+    writer =csv.DictWriter(f, fieldnames=ROUTES[0].keys())
+    writer.writerows(ROUTES)
+
+with open("routes.csv","r",newline="") as f:
+    for row in csv.DictReader(f):
+        print(row)
+
+
+#file i/O - json
+with open("routes.json","w") as f:
+    json.dump(ROUTES, f, indent=2)
+
+with open("routes.json","r") as f:
+    data = json.load(f)
+
+#custom exceptions
+
+class CapacityExceededError(Exception):
+    pass
+
+def board(passengers, capacity):
+    if passengers>capacity:
+        raise CapacityExceededError(f"{capacity} is greater then {passengers}")
+    else:
+        print("Passengers with capacity")
+
+try:
+    (board(10,9))
+except CapacityExceededError as e:
+    print(type(e).__name__,e)
+
+#Classes
+class Trip:
+    def __init__(self, route_id, hour, passengers):
+        if not isinstance(route_id,int) or route_id<0:
+            raise TypeError(f"Route: {route_id} cannot be less than zero")
+        if not (0 <= hour <= 23):
+            raise ValueError("no of hours chas to be between 0 and 23 only")
+
+        
+
+        self.route_id = route_id
+        self.hour = hour
+        self.passengers = passengers
+        self.is_peak = hour>=8
+
+
+    def get_fare(self):
+        fare = self.hour * 5
+        if self.is_peak == True:
+            fare *=2
+        return fare
+
+
+t1 = Trip(7, 6, 30)
+print(t1.get_fare()) # 30 (6*5, not peak)
+
+t2 = Trip(7, 9, 30)
+print(t2.get_fare()) # 90 (9*5=45, doubled)
+
+t3 = Trip(7, 8, 30)
+print(t3.get_fare()) # 80 (8 counts as peak)
+
+t4 = Trip(7, 0, 30)
+print(t4.get_fare()) # 0 (midnight, 0*5)
+
+t5 = Trip(7, 23, 30)
+print(t5.is_peak) 
+
+
+try:
+    Trip(7, 25, 30)
+
+except Exception as e:
+    print(type(e).__name__,"-",e)
